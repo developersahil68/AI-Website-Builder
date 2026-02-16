@@ -1,0 +1,31 @@
+// import { Home, View } from "lucide-react";
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import Pricing from "./pages/Pricing";
+import Projects from "./pages/Projects";
+import MyProjects from "./pages/MyProjects";
+import Preview from "./pages/Preview";
+import Community from "./pages/Community";
+import Home from "./pages/Home";
+import View from "./pages/View";
+import Navbar from "./components/Navbar";
+
+const App = () => {
+  return (
+    <div>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/Pricing" element={<Pricing />} />
+        <Route path="/Projects/:projectId" element={<Projects />} />
+        <Route path="/Projects" element={<MyProjects />} />
+        <Route path="/Preview/:projectID" element={<Preview />} />
+        <Route path="/Preview/:projectID/:versionId" element={<Preview />} />
+        <Route path="/Community" element={<Community />} />
+        <Route path="/View/:projectId" element={<View />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
