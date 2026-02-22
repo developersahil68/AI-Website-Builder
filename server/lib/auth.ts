@@ -1,3 +1,5 @@
+console.log("AUTH FILE LOADED");
+
 import "dotenv/config";
 
 import { betterAuth } from "better-auth";
@@ -5,6 +7,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
 
 const trustedOrigins = process.env.TRUSTED_ORIGINS?.split(",") || [];
+console.log("Trusted Origins:", trustedOrigins);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -13,9 +16,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    deleteUser: { enabled: true },
+  },
   trustedOrigins,
   baseURL: process.env.BETTER_AUTH_URL!,
   secret: process.env.BETTER_AUTH_SECRET!,
+  allowCredentials: true,
+
   advanced: {
     cookies: {
       session_token: {
@@ -23,7 +31,7 @@ export const auth = betterAuth({
         attributes: {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "none",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           path: "/",
         },
       },

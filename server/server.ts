@@ -8,11 +8,11 @@ const app = express();
 
 const corsOptions = {
   origin: process.env.TRUSTED_ORIGINS?.split(",") || [],
-  Credentials: true,
+  credentials: true,
 };
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.all("/api/auth/{*any}", toNodeHandler(auth));
