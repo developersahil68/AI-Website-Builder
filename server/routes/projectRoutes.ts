@@ -12,7 +12,8 @@ import {
 
 const projectRouter = express.Router();
 
-projectRouter.post("/version/:projectId", protect, makeRevision);
+// projectRouter.post("/version/:projectId", protect, makeRevision);
+projectRouter.post("/revision/:projectId", protect, makeRevision);
 projectRouter.put("/save/:projectId", protect, saveProjectCode);
 projectRouter.get(
   "/rollback/:projectId/:versionId",
