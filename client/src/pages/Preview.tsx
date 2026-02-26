@@ -4,8 +4,8 @@ import { Loader2Icon } from "lucide-react";
 import ProjectPreview from "../components/ProjectPreview";
 import type { Project, Version } from "../types";
 import api from "@/configs/axios";
-import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { handleApiError } from "@/lib/errorHandler";
 
 const Preview = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -13,25 +13,24 @@ const Preview = () => {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchCode = async () => {
-    try {
-      const { data } = await api.get(`/api/project/preview/${projectId}`);
-      setCode(data.project.current_code);
-      if (versionId) {
-        data.project.version.forEach((version: Version) => {
-          if (version.id === versionId) {
-            setCode(version.code);
-          }
-        });
-      }
-      setLoading(false);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
+    const fetchCode = async () => {
+      try {
+        const { data } = await api.get(`/api/project/preview/${projectId}`);
+        setCode(data.project.current_code);
+        if (versionId) {
+          data.project.version.forEach((version: Version) => {
+            if (version.id === versionId) {
+              setCode(version.code);
+            }
+          });
+        }
+        setLoading(false);
+      } catch (error: unknown) {
+        handleApiError(error);
+      }
+    };
+
     if (!isPending && session?.user) {
       fetchCode();
     }

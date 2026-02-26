@@ -1,5 +1,3 @@
-// import { Home, View } from "lucide-react";
-import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Pricing from "./pages/Pricing";
 import Projects from "./pages/Projects";

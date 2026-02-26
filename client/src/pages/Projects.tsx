@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Project } from "../types";
 import {
@@ -22,6 +22,7 @@ import ProjectPreview, {
 import api from "@/configs/axios";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { handleApiError } from "@/lib/errorHandler";
 
 const Projects = () => {
   const { projectId } = useParams();
@@ -46,9 +47,8 @@ const Projects = () => {
       setProject(data.project);
       setIsGenerating(data.project.current_code ? false : true);
       setLoading(false);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   };
 
@@ -63,9 +63,8 @@ const Projects = () => {
         code,
       });
       toast.success(data.message);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
+    } catch (error: unknown) {
+      handleApiError(error);
     } finally {
       setIsSaving(false);
     }
@@ -93,9 +92,8 @@ const Projects = () => {
       setProject((prev) =>
         prev ? { ...prev, isPublished: !prev.isPublished } : null,
       );
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
+    } catch (error: unknown) {
+      handleApiError(error)
     }
   };
 

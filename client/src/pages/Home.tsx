@@ -1,5 +1,6 @@
 import api from "@/configs/axios";
 import { authClient } from "@/lib/auth-client";
+import { handleApiError } from "@/lib/errorHandler";
 import { Loader2Icon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,23 +29,23 @@ const Home = () => {
 
       setLoading(false);
       navigate(`/projects/${data.projectId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      handleApiError(error);
+    } finally {
       setLoading(false);
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
     }
   };
   return (
     <section className="flex flex-col items-center text-white text-sm pb-20 px-4 font-poppins">
       <a
-        href="https://prebuiltui.com"
+        href="/pricing"
         className="flex items-center gap-2 border border-slate-700 rounded-full p-1 pr-3 text-sm mt-20"
       >
         <span className="bg-indigo-600 text-xs px-3 py-1 rounded-full">
           New
         </span>
         <p className="flex items-center gap-2">
-          <span>Try 30 days free trial option</span>
+          <span>Try our 30-day free trial — no credit card needed</span>
           <svg
             className="mt-px"
             width="6"
@@ -65,7 +66,7 @@ const Home = () => {
       </a>
 
       <h1 className="text-center text-[40px] leading-[48px] md:text-6xl md:leading-[70px] mt-4 font-semibold max-w-3xl">
-        Turn thoughts into webssites instantly, with AI.
+        Turn thoughts into websites instantly, with AI.
       </h1>
 
       <p className="text-center text-base max-w-md mt-2">
@@ -96,31 +97,31 @@ const Home = () => {
         </button>
       </form>
 
-      <div className="flex flex-wrap items-center justify-center gap-16 md:gap-20 mx-auto mt-16">
+      <div className="flex flex-nowrap items-center justify-center gap-15 md:gap-14 mx-auto w-full max-w-5xl px-14 mt-25">
         <img
-          className="max-w-28 md:max-w-32"
-          src="https://saasly.prebuiltui.com/assets/companies-logo/framer.svg"
-          alt=""
+          className="h-10 w-auto opacity-60 hover:opacity-100 transition-opacity shrink-0 brightness-0 invert"
+          src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+          alt="Google"
         />
         <img
-          className="max-w-28 md:max-w-32"
-          src="https://saasly.prebuiltui.com/assets/companies-logo/huawei.svg"
-          alt=""
+          className="h-10 w-auto opacity-60 hover:opacity-100 transition-opacity shrink-0 brightness-0 invert"
+          src="https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg"
+          alt="Microsoft"
         />
         <img
-          className="max-w-28 md:max-w-32"
-          src="https://saasly.prebuiltui.com/assets/companies-logo/instagram.svg"
-          alt=""
+          className="h-10 w-auto opacity-60 hover:opacity-100 transition-opacity shrink-0 brightness-0 invert"
+          src="https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png"
+          alt="Notion"
         />
         <img
-          className="max-w-28 md:max-w-32"
-          src="https://saasly.prebuiltui.com/assets/companies-logo/microsoft.svg"
-          alt=""
+          className="h-10 w-auto opacity-60 hover:opacity-100 transition-opacity shrink-0 brightness-0 invert"
+          src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg"
+          alt="Slack"
         />
         <img
-          className="max-w-28 md:max-w-32"
-          src="https://saasly.prebuiltui.com/assets/companies-logo/walmart.svg"
-          alt=""
+          className="h-10 w-auto opacity-60 hover:opacity-100 transition-opacity shrink-0 brightness-0 invert"
+          src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg"
+          alt="Figma"
         />
       </div>
     </section>

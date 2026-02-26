@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Project } from "../types";
 import { Loader2Icon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import api from "@/configs/axios";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { handleApiError } from "@/lib/errorHandler";
 
 const MyProjects = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -14,40 +15,42 @@ const MyProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
 
-  const fetchProjects = async () => {
-    try {
-      const { data } = await api.get("/api/user/projects");
-      console.log("API RESPONSE:", data);
-      setProjects(data.projects);
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || error.message);
-    }
-  };
-
   useEffect(() => {
-    if (session?.user && !isPending) {
-      fetchProjects();
-    } else if (!isPending && !session?.user) {
+    if (isPending) return;
+
+    if (!session?.user) {
       navigate("/");
-      toast("Pease login to view your projects");
+      toast("Please login to view your projects");
+      return;
     }
-  }, [session?.user]);
+
+    const fetchProjects = async () => {
+      try {
+        const { data } = await api.get("/api/user/projects");
+        setProjects(data.projects);
+      } catch (error: unknown) {
+        handleApiError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [session?.user, isPending, navigate]);
 
   const deleteProject = async (projectId: string) => {
-    try {
-      const confirm = window.confirm(
-        "Are you sure you want to delete this project?",
-      );
-      if (!confirm) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this project?",
+    );
+    if (!confirmed) return;
 
+    try {
       const { data } = await api.delete(`/api/projects/${projectId}`);
       toast.success(data.message);
-      fetchProjects();
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || error.message);
+
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   };
   return (

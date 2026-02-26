@@ -4,12 +4,12 @@ import {
   SquareIcon,
   TriangleIcon,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const steps = [
   { icon: ScanLineIcon, label: "Analyzing your request..." },
   { icon: SquareIcon, label: "Generating Layout Structure..." },
-  { icon: TriangleIcon, label: "Assembling UI Componenet..." },
+  { icon: TriangleIcon, label: "Assembling UI Component..." },
   { icon: CircleIcon, label: "Finalizing your website..." },
 ];
 
@@ -27,10 +27,10 @@ const LoaderSteps = () => {
   const Icon = steps[current].icon;
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-gray-950 relative overflow-hidden text-white">
-      <div className="absolute insert-0 bg-linear-to-br from-blue-500/10 via-purple-500/10 to-fuchsia-500/10 blur-3xl animate-pulse"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 via-purple-500/10 to-fuchsia-500/10 blur-3xl animate-pulse"></div>
       <div className="relative z-10 w-32 h-32 flex items-center justify-center">
-        <div className="absolute insert-0 rounded-full border border-indigo-400 animate-ping opacity-30" />
-        <div className="absolute insert-4 rounded-full border border-indigo-400/20 " />
+        <div className="absolute inset-0 rounded-full border border-indigo-400 animate-ping opacity-30" />
+        <div className="absolute inset-4 rounded-full border border-indigo-400/20 " />
         <Icon className="w-8 h-8 text-white opacity-80 animate-bounce" />
       </div>
       {/* step label - fade using transition only (no invisible start ) */}
@@ -42,7 +42,7 @@ const LoaderSteps = () => {
         {steps[current].label}
       </p>
       <p className="text-xs text-gray-400 mt-2 transition-opacity duration-700">
-        This may take around 2-3 minutes...
+        This may take around 4-6 minutes...
       </p>
     </div>
   );

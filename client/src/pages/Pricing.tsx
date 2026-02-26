@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import api from "@/configs/axios";
+import { handleApiError } from "@/lib/errorHandler";
 
 interface Plan {
   id: string;
@@ -26,9 +27,8 @@ const Pricing = () => {
       const { data } = await api.post("/api/user/purchase-credits", { planId });
 
       window.location.assign(data.payment_link);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message);
-      console.log(error);
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   };
   return (
