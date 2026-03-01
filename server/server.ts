@@ -6,6 +6,7 @@ import { auth } from "./lib/auth.js";
 import userRouter from "./routes/userRouter.js";
 import projectRouter from "./routes/projectRoutes.js";
 import { stripeWebhook } from "./controllers/stripeWebhook.js";
+import path from "path";
 
 const app = express();
 

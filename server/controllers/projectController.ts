@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../configs/openai.js";
+import { geminiModel } from "../lib/gemini.js";
 
 // controller function to make revision
 export const makeRevision = async (req: Request, res: Response) => {
@@ -52,32 +53,20 @@ export const makeRevision = async (req: Request, res: Response) => {
 
     // enhance user prompt
 
-    const promptEnhanceResponse = await openai.chat.completions.create({
-      model: "z-ai/glm-4.5-air:free",
-      messages: [
-        {
-          role: "system",
-          content: ` 
-          You are a prompt enhancement specialist. The user wants to make changes to their website. Enhance their request to be more specific and actionable for a web developer.
+    const enhanceResult = await geminiModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: message }] }],
+      systemInstruction: `    You are a prompt enhancement specialist. The user wants to make changes to their website. Enhance their request to be more specific and actionable for a web developer.
 
-         Enhance this by:
-         1. Being specific about what elements to change
-         2. Mentioning design details (colors, spacing, sizes)
-         3. Clarifying the desired outcome
-         4. Using clear technical terms
+          Enhance this by:
+          1. Being specific about what elements to change
+          2. Mentioning design details (colors, spacing, sizes)
+          3. Clarifying the desired outcome
+          4. Using clear technical terms
 
-         Return ONLY the enhanced request, nothing else. Keep it concise (1-2 sentences).
-          `,
-        },
-
-        {
-          role: "user",
-          content: `Users's Request: "${message}"`,
-        },
-      ],
+          Return ONLY the enhanced request, nothing else. Keep it concise (1-2 sentences).
+            `,
     });
-
-    const enhancedPrompt = promptEnhanceResponse.choices[0].message.content;
+    const enhancedPrompt = enhanceResult.response.text();
 
     await prisma.conversation.create({
       data: {
@@ -96,34 +85,23 @@ export const makeRevision = async (req: Request, res: Response) => {
     });
 
     // generate website code
-    const codeGenerationResponse = await openai.chat.completions.create({
-      model: "z-ai/glm-4.5-air:free",
-      messages: [
-        {
-          role: "system",
-          content: `
-              
-          You are an expert web developer. 
 
-          CRITICAL REQUIREMENTS:
-        - Return ONLY the complete updated HTML code with the requested changes.
-        - Use Tailwind CSS for ALL styling (NO custom CSS).
-        - Use Tailwind utility classes for all styling changes.
-        - Include all JavaScript in <script> tags before closing </body>
-        - Make sure it's a complete, standalone HTML document with Tailwind CSS
-        - Return the HTML Code Only, nothing else
+    const codeResult = await geminiModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+      systemInstruction: `  You are an expert web developer. 
 
-        Apply the requested changes while maintaining the Tailwind CSS styling approach.
-            `,
-        },
-        {
-          role: "user",
-          content: `Here is the current website coe: "${currentProject?.current_code}" The user wants this change: "${enhancedPrompt}"`,
-        },
-      ],
+           CRITICAL REQUIREMENTS:
+         - Return ONLY the complete updated HTML code with the requested changes.
+         - Use Tailwind CSS for ALL styling (NO custom CSS).
+         - Use Tailwind utility classes for all styling changes.
+         - Include all JavaScript in <script> tags before closing </body>
+         - Make sure it's a complete, standalone HTML document with Tailwind CSS
+         - Return the HTML Code Only, nothing else
+
+         Apply the requested changes while maintaining the Tailwind CSS styling approach.
+          `,
     });
-
-    const code = codeGenerationResponse.choices[0].message.content || "";
+    const code = codeResult.response.text();
 
     if (!code) {
       await prisma.conversation.create({
@@ -246,7 +224,7 @@ export const deleteProject = async (req: Request, res: Response) => {
     }
 
     await prisma.websiteProject.delete({
-      where: { id: projectId, userId },
+      where: { id: projectId },
     });
 
     res.json({ message: "project deleted successfully" });

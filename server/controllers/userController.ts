@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../configs/openai.js";
 import Stripe from "stripe";
+import { geminiModel } from "../lib/gemini.js";
 // get user credits
 
 export const getUserCredits = async (req: Request, res: Response) => {
@@ -79,32 +80,49 @@ export const createUserProject = async (req: Request, res: Response) => {
     res.json({ projectId: project.id });
 
     // enhancing usr prompt
-    const promptEnhanceResponse = await openai.chat.completions.create({
-      model: "z-ai/glm-4.5-air:free",
-      messages: [
-        {
-          role: "system",
-          content: `You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
+    //     const promptEnhanceResponse = await openai.chat.completions.create({
+    //       model: "z-ai/glm-4.5-air:free",
+    //       messages: [
+    //         {
+    //           role: "system",
+    //           content: `You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
 
-           Enhance this prompt by:
-          1. Adding specific design details (layout, color scheme, typography)
-          2. Specifying key sections and features
-          3. Describing the user experience and interactions
-          4. Including modern web design best practices
-          5. Mentioning responsive design requirements
-          6. Adding any missing but important elements
+    //            Enhance this prompt by:
+    //           1. Adding specific design details (layout, color scheme, typography)
+    //           2. Specifying key sections and features
+    //           3. Describing the user experience and interactions
+    //           4. Including modern web design best practices
+    //           5. Mentioning responsive design requirements
+    //           6. Adding any missing but important elements
 
-         Return ONLY the enhanced prompt, nothing else. Make it detailed but concise (2-3 paragraphs max).
-`,
-        },
-        {
-          role: "user",
-          content: initial_prompt,
-        },
-      ],
+    //          Return ONLY the enhanced prompt, nothing else. Make it detailed but concise (2-3 paragraphs max).
+    // `,
+    //         },
+    //         {
+    //           role: "user",
+    //           content: initial_prompt,
+    //         },
+    //       ],
+    //     });
+
+    // const enhancedPrompt = promptEnhanceResponse.choices[0].message.content;
+
+    const enhanceResult = await geminiModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: initial_prompt }] }],
+      systemInstruction: `You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
+
+               Enhance this prompt by:
+             1. Adding specific design details (layout, color scheme, typography)
+             2. Specifying key sections and features
+            3. Describing the user experience and interactions
+             4. Including modern web design best practices
+              5. Mentioning responsive design requirements
+              6. Adding any missing but important elements
+
+             Return ONLY the enhanced prompt, nothing else. Make it detailed but concise (2-3 paragraphs max).
+     `,
     });
-
-    const enhancedPrompt = promptEnhanceResponse.choices[0].message.content;
+    const enhancedPrompt = enhanceResult.response.text();
 
     await prisma.conversation.create({
       data: {
@@ -124,47 +142,77 @@ export const createUserProject = async (req: Request, res: Response) => {
 
     // generate website code
 
-    const codeGenerationResponse = await openai.chat.completions.create({
-      model: "z-ai/glm-4.5-air:free",
-      messages: [
-        {
-          role: "system",
-          content: `
-        You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
+    // const codeGenerationResponse = await openai.chat.completions.create({
+    //   model: "z-ai/glm-4.5-air:free",
+    //   messages: [
+    //     {
+    //       role: "system",
+    //       content: `
+    //     You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
 
-    CRITICAL REQUIREMENTS:
-    - You MUST output valid HTML ONLY. 
-    - Use Tailwind CSS for ALL styling
-    - Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    - Use Tailwind utility classes extensively for styling, animations, and responsiveness
-    - Make it fully functional and interactive with JavaScript in <script> tag before closing </body>
-    - Use modern, beautiful design with great UX using Tailwind classes
-    - Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:)
-    - Use Tailwind animations and transitions (animate-*, transition-*)
-    - Include all necessary meta tags
-    - Use Google Fonts CDN if needed for custom fonts
-    - Use placeholder images from https://placehold.co/600x400
-    - Use Tailwind gradient classes for beautiful backgrounds
-    - Make sure all buttons, cards, and components use Tailwind styling
+    // CRITICAL REQUIREMENTS:
+    // - You MUST output valid HTML ONLY.
+    // - Use Tailwind CSS for ALL styling
+    // - Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    // - Use Tailwind utility classes extensively for styling, animations, and responsiveness
+    // - Make it fully functional and interactive with JavaScript in <script> tag before closing </body>
+    // - Use modern, beautiful design with great UX using Tailwind classes
+    // - Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:)
+    // - Use Tailwind animations and transitions (animate-*, transition-*)
+    // - Include all necessary meta tags
+    // - Use Google Fonts CDN if needed for custom fonts
+    // - Use placeholder images from https://placehold.co/600x400
+    // - Use Tailwind gradient classes for beautiful backgrounds
+    // - Make sure all buttons, cards, and components use Tailwind styling
 
-    CRITICAL HARD RULES:
-    1. You MUST put ALL output ONLY into message.content.
-    2. You MUST NOT place anything in "reasoning", "analysis", "reasoning_details", or any hidden fields.
-    3. You MUST NOT include internal thoughts, explanations, analysis, comments, or markdown.
-    4. Do NOT include markdown, explanations, notes, or code fences.
+    // CRITICAL HARD RULES:
+    // 1. You MUST put ALL output ONLY into message.content.
+    // 2. You MUST NOT place anything in "reasoning", "analysis", "reasoning_details", or any hidden fields.
+    // 3. You MUST NOT include internal thoughts, explanations, analysis, comments, or markdown.
+    // 4. Do NOT include markdown, explanations, notes, or code fences.
 
-    The HTML should be complete and ready to render as-is with Tailwind CSS.
+    // The HTML should be complete and ready to render as-is with Tailwind CSS.
 
-        `,
-        },
-        {
-          role: "user",
-          content: enhancedPrompt || "",
-        },
-      ],
+    //     `,
+    //     },
+    //     {
+    //       role: "user",
+    //       content: enhancedPrompt || "",
+    //     },
+    //   ],
+    // });
+
+    // const code = codeGenerationResponse.choices[0].message.content || "";
+
+    const codeResult = await geminiModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+      systemInstruction: `/     You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
+
+     CRITICAL REQUIREMENTS:
+     - You MUST output valid HTML ONLY.
+     - Use Tailwind CSS for ALL styling
+     - Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+     - Use Tailwind utility classes extensively for styling, animations, and responsiveness
+     - Make it fully functional and interactive with JavaScript in <script> tag before closing </body>
+     - Use modern, beautiful design with great UX using Tailwind classes
+     - Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:)
+     - Use Tailwind animations and transitions (animate-*, transition-*)
+     - Include all necessary meta tags
+     - Use Google Fonts CDN if needed for custom fonts
+     - Use placeholder images from https://placehold.co/600x400
+     - Use Tailwind gradient classes for beautiful backgrounds
+     - Make sure all buttons, cards, and components use Tailwind styling
+
+     CRITICAL HARD RULES:
+     1. You MUST put ALL output ONLY into message.content.
+     2. You MUST NOT place anything in "reasoning", "analysis", "reasoning_details", or any hidden fields.
+     3. You MUST NOT include internal thoughts, explanations, analysis, comments, or markdown.
+     4. Do NOT include markdown, explanations, notes, or code fences.
+
+     The HTML should be complete and ready to render as-is with Tailwind CSS.
+.`,
     });
-
-    const code = codeGenerationResponse.choices[0].message.content || "";
+    const code = codeResult.response.text();
 
     if (!code) {
       await prisma.conversation.create({

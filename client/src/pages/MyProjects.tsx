@@ -45,7 +45,7 @@ const MyProjects = () => {
     if (!confirmed) return;
 
     try {
-      const { data } = await api.delete(`/api/projects/${projectId}`);
+      const { data } = await api.delete(`/api/project/${projectId}`);
       toast.success(data.message);
 
       setProjects((prev) => prev.filter((p) => p.id !== projectId));
